@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 ## Introduction
 
@@ -33,7 +28,8 @@ Show any code that is needed to:
 
 1. **Load the data (i.e. read.csv())**
 
-```{r}
+
+```r
 unzip("activity.zip")
 activity <- read.csv("activity.csv")
 ```
@@ -42,13 +38,15 @@ activity <- read.csv("activity.csv")
 
 Convert `date` to Date format
 
-```{r}
+
+```r
 activity$date <- as.Date(activity$date)
 ```
 
 The intervals are stored HHMM format, meaning that they are not evenly spaced when the variable is interpreted as a numeric (i.e., there are gaps between XX55s and YY00s). So convert them to minutes past midnight.
 
-```{r}
+
+```r
 # Start with the minutes past the hour for each interval
 activity$minute <- activity[activity$interval < 100,]$interval
 
@@ -66,7 +64,8 @@ For this part of the assignment, you can ignore the missing values in the datase
 
 1. **Calculate the total number of steps taken per day**
 
-```{r}
+
+```r
 library(plyr)
 stepsPerDay <- ddply(activity, 
                      .(date), 
@@ -76,21 +75,25 @@ stepsPerDay <- ddply(activity,
 
 2. **If you do not understand the difference between a histogram and a barplot, research the difference between them. Make a histogram of the total number of steps taken each day**
 
-```{r}
+
+```r
 hist(stepsPerDay$numSteps,
      main = "Total Number of Steps Taken per Day",
      xlab = "Steps")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
 3. **Calculate and report the mean and median of the total number of steps taken per day**
 
-```{r}
+
+```r
 meanSteps <- mean(stepsPerDay$numSteps)
 medSteps  <- median(stepsPerDay$numSteps)
 ```
 
-The mean total number of steps taken per day is **`r round(meanSteps, digits = 2)`**.  
-The median total number of steps taken per day is **`r medSteps`**.
+The mean total number of steps taken per day is **9354.23**.  
+The median total number of steps taken per day is **10395**.
 
 
 ### What is the average daily activity pattern?
@@ -99,7 +102,8 @@ The median total number of steps taken per day is **`r medSteps`**.
 
 First, create a data set that contains the average steps taken for each interval (as minutes past midnight).
 
-```{r}
+
+```r
 stepsPerInterval <- ddply(activity,
                           .(time, interval), 
                           summarize,
@@ -108,23 +112,27 @@ stepsPerInterval <- ddply(activity,
 
 Finally, plot the time series.
 
-```{r}
+
+```r
 with(stepsPerInterval, plot(time, avgSteps, type = "l", 
                             main = "Time Series of Average Steps per Interval",
                             ylab = "Average number of steps",
                             xlab = "Minutes past midnight"))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
+
 2. **Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
 
 Sort the data in descending order by average number of steps. The interval from the first row is the one with the maximum number of steps.
 
-```{r}
+
+```r
 stepsPerInterval <- stepsPerInterval[order(stepsPerInterval$avgSteps, 
                                            decreasing = TRUE),] 
 ```
 
-The interval with maximum number of steps, on average across all days in the dataset, is **`r stepsPerInterval$interval[1]`**.
+The interval with maximum number of steps, on average across all days in the dataset, is **835**.
 
 
 ### Imputing missing values
