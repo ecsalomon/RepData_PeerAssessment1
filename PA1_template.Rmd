@@ -52,8 +52,10 @@ The intervals are stored HHMM format, meaning that they are not evenly spaced wh
 # Start with the minutes past the hour for each interval
 activity$minute <- activity[activity$interval < 100,]$interval
 
-# Get the hours
+# Get the hours by removing the last two digits from the intervals
 activity$hour <- as.numeric(gsub(".{1,2}$", "", activity$interval))
+
+# If there was nothing left, the hour is 0
 activity$hour[is.na(activity$hour)]  <- 0
 
 # Minutes past midnight = (minutes past the hour) + (60 * hour)
@@ -79,7 +81,8 @@ stepsPerDay <- ddply(activity,
 ```{r}
 hist(stepsPerDay$numSteps,
      main = "Total Number of Steps Taken per Day",
-     xlab = "Steps")
+     xlab = "Steps", 
+     breaks = 8)
 ```
 
 3. **Calculate and report the mean and median of the total number of steps taken per day**
@@ -131,16 +134,75 @@ The interval with maximum number of steps, on average across all days in the dat
 
 Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
 
-1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
-2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
-3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
-4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+1. **Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)**
 
+```{r}
+totalNAs <- sum(is.na(activity$steps))
+```
+
+**`r totalNAs`** rows have missing step data.
+
+2. **Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.**
+
+I will use the mean value for that 5-minute interval.
+
+3. **Create a new dataset that is equal to the original dataset but with the missing data filled in.**
+
+```{r}
+activityImpute <- activity
+for (i in 1:nrow(activityImpute)) {
+  if(is.na(activityImpute$steps[i])){
+    activityImpute$steps[i] <- 
+      stepsPerInterval$avgSteps[stepsPerInterval$interval == 
+                                  activityImpute$interval[i]]
+    }
+}
+```
+
+4. **Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?**
+
+Calculate the total steps per day. Then, plot the histogram.
+
+```{r}
+stepsPerDayImpute <- ddply(activityImpute, 
+                           .(date), 
+                           summarize,
+                           numSteps = sum(steps, na.rm = TRUE))
+
+hist(stepsPerDayImpute$numSteps,
+     main = "Total Number of Steps Taken per Day",
+     xlab = "Steps", 
+     breaks = 8)
+```
+
+Calculate the mean and median with the imputed data.
+
+```{r}
+meanStepsImpute <- mean(stepsPerDayImpute$numSteps)
+medStepsImpute  <- median(stepsPerDayImpute$numSteps)
+```
+
+The mean total number of steps taken per day is **`r format(meanStepsImpute, digits = 7, scientific = FALSE)`**.  
+The median total number of steps taken per day is **`r format(medStepsImpute, digits = 7, scientific = FALSE)`**.
+
+Calculate the differences between these values and those and the values without imputed steps. 
+
+```{r}
+meanDiff <- meanStepsImpute - meanSteps
+medDiff  <- medStepsImpute - medSteps
+```
+
+The new mean using the imputed values is **`r round(meanDiff, digits = 2)`** steps larger than the mean without imputed values.  
+The new median using the imputed values is **`r round(medDiff, digits = 2)`** steps larger than the mean without imputed values.
+
+The previous distribution was right skewed (mostly due to the large number of `0`s). Imputing median values for each interval added more values toward the center of the distribution and reduced the number of days with `0` steps. This brought the median and mean closer together and made them larger.
 
 ### Are there differences in activity patterns between weekdays and weekends?
 
 For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
 
-1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
-2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+1. **Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.**
+
+
+2. **Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.**
 

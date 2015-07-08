@@ -50,8 +50,10 @@ The intervals are stored HHMM format, meaning that they are not evenly spaced wh
 # Start with the minutes past the hour for each interval
 activity$minute <- activity[activity$interval < 100,]$interval
 
-# Get the hours
+# Get the hours by removing the last two digits from the intervals
 activity$hour <- as.numeric(gsub(".{1,2}$", "", activity$interval))
+
+# If there was nothing left, the hour is 0
 activity$hour[is.na(activity$hour)]  <- 0
 
 # Minutes past midnight = (minutes past the hour) + (60 * hour)
@@ -79,7 +81,8 @@ stepsPerDay <- ddply(activity,
 ```r
 hist(stepsPerDay$numSteps,
      main = "Total Number of Steps Taken per Day",
-     xlab = "Steps")
+     xlab = "Steps", 
+     breaks = 8)
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
@@ -139,11 +142,75 @@ The interval with maximum number of steps, on average across all days in the dat
 
 Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
 
-1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
-2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
-3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
-4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+1. **Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)**
 
+
+```r
+totalNAs <- sum(is.na(activity$steps))
+```
+
+**2304** rows have missing step data.
+
+2. **Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.**
+
+I will use the mean value for that 5-minute interval.
+
+3. **Create a new dataset that is equal to the original dataset but with the missing data filled in.**
+
+
+```r
+activityImpute <- activity
+for (i in 1:nrow(activityImpute)) {
+  if(is.na(activityImpute$steps[i])){
+    activityImpute$steps[i] <- 
+      stepsPerInterval$avgSteps[stepsPerInterval$interval == 
+                                  activityImpute$interval[i]]
+    }
+}
+```
+
+4. **Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?**
+
+Calculate the total steps per day. Then, plot the histogram.
+
+
+```r
+stepsPerDayImpute <- ddply(activityImpute, 
+                           .(date), 
+                           summarize,
+                           numSteps = sum(steps, na.rm = TRUE))
+
+hist(stepsPerDayImpute$numSteps,
+     main = "Total Number of Steps Taken per Day",
+     xlab = "Steps", 
+     breaks = 8)
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+
+Calculate the mean and median with the imputed data.
+
+
+```r
+meanStepsImpute <- mean(stepsPerDayImpute$numSteps)
+medStepsImpute  <- median(stepsPerDayImpute$numSteps)
+```
+
+The mean total number of steps taken per day is **10766.189**.  
+The median total number of steps taken per day is **10766.189**.
+
+Calculate the differences between these values and those and the values without imputed steps. 
+
+
+```r
+meanDiff <- meanStepsImpute - meanSteps
+medDiff  <- medStepsImpute - medSteps
+```
+
+The new mean using the imputed values is **1411.96** steps larger than the mean without imputed values.  
+The new median using the imputed values is **371.19** steps larger than the mean without imputed values.
+
+The previous distribution was right skewed (the median was to the *left* of the mean). Imputing median values for each interval added more values toward the center of the distribution, brought the median and mean closer together and made them larger.
 
 ### Are there differences in activity patterns between weekdays and weekends?
 
