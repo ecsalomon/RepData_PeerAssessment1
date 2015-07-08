@@ -46,7 +46,7 @@ Convert `date` to Date format
 activity$date <- as.Date(activity$date)
 ```
 
-The intervals are stored HHMM format, meaning that they are not evenly spaced when the variable is interpreted as a numeric (i.e., there are gaps between XX55s and YY00s). So convert them to minutes past midnight.
+The intervals are stored HHMM format, meaning that they are not interval scale (evenly spaced) when the variable is interpreted as a numeric. In other words, there is a larger difference between `155` and `200` than between `200` and `205` *despite the fact that both sets of measurements are only five minutes apart*. This will create "jumps" in the line plots between the hours and make an inaccurate visualization. So convert them to minutes past midnight for the purpose of scaling the x-axes.
 
 ```{r}
 # Start with the minutes past the hour for each interval
@@ -203,6 +203,31 @@ For this part the weekdays() function may be of some help here. Use the dataset 
 
 1. **Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.**
 
+```{r}
+activityImpute$weekday[weekdays(activityImpute$date) == "Saturday" | 
+                         weekdays(activityImpute$date) == "Sunday"] <- "weekend"
+activityImpute$weekday[!(weekdays(activityImpute$date) == "Saturday" | 
+                         weekdays(activityImpute$date) == "Sunday")] <- "weekday"
+activityImpute$weekday <- as.factor(activityImpute$weekday)
+```
 
 2. **Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.**
 
+First, calculate the steps per interval separately for weekdays vs. weekends. Then plot the time series.
+
+```{r}
+stepsPerIntervalImpute <- ddply(activityImpute,
+                                .(time, interval, weekday), 
+                                summarize,
+                                avgSteps = mean(steps))
+
+library(ggplot2)
+timeplot <- ggplot(stepsPerIntervalImpute, 
+                   aes(x=time, y=avgSteps)) + 
+  geom_line() + 
+  facet_grid(weekday ~ ., scales = "free") + 
+  theme(axis.title.x = element_text(face="bold"), 
+        axis.title.y = element_text(face="bold"), 
+        axis.text.x  = element_text(colour="#000000"), 
+        axis.text.y  = element_text(colour="#000000"))
+```
