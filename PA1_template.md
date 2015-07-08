@@ -233,7 +233,7 @@ medDiff  <- medStepsImpute - medSteps
 The new mean using the imputed values is **1411.96** steps larger than the mean without imputed values.  
 The new median using the imputed values is **371.19** steps larger than the mean without imputed values.
 
-The previous distribution was right skewed (mostly due to the large number of `0`s). Imputing median values for each interval added more values toward the center of the distribution and reduced the number of days with `0` steps. This brought the median and mean closer together and made them larger.
+The previous distribution was right skewed, mostly due to the large number of days with nothing recorded for many intervals, leading to atypically low totals. Imputing median interval values for those days brought their total steps closer to the center of the distribution and reduced the number of days with nearly `0` steps. This brought the median and mean closer together and made them larger.
 
 ### Are there differences in activity patterns between weekdays and weekends?
 

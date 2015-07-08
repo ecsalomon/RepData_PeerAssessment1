@@ -222,7 +222,7 @@ medStepsImpute  &lt;- median(stepsPerDayImpute$numSteps)</code></pre>
 <pre class="r"><code>meanDiff &lt;- meanStepsImpute - meanSteps
 medDiff  &lt;- medStepsImpute - medSteps</code></pre>
 <p>The new mean using the imputed values is <strong>1411.96</strong> steps larger than the mean without imputed values.<br />The new median using the imputed values is <strong>371.19</strong> steps larger than the mean without imputed values.</p>
-<p>The previous distribution was right skewed (mostly due to the large number of <code>0</code>s). Imputing median values for each interval added more values toward the center of the distribution and reduced the number of days with <code>0</code> steps. This brought the median and mean closer together and made them larger.</p>
+<p>The previous distribution was right skewed, mostly due to the large number of days with nothing recorded for many intervals, leading to atypically low totals. Imputing median interval values for those days brought their total steps closer to the center of the distribution and reduced the number of days with nearly <code>0</code> steps. This brought the median and mean closer together and made them larger.</p>
 </div>
 <div id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends" class="section level3">
 <h3>Are there differences in activity patterns between weekdays and weekends?</h3>
