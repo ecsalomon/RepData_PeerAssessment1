@@ -113,17 +113,40 @@ stepsPerInterval <- ddply(activity,
                           avgSteps = mean(steps, na.rm = TRUE))
 ```
 
+Then, load the ggplot2 package and set up the breaks and labels for the x-axis. I'll be using the `time` variable (minutes after midnight) for plotting because of the issue with uneven spacing for the `interval` variable. However, I want the x-axis to be interpretable in terms of clock times. This means I need to map levels of the `time` variable to (roughly) equally spaced values of `interval` and then label these intervals with the appropriate clock times. I'm saving these values to objects so that I can use them in the later time series plots as well. 
+
+
+```r
+library(ggplot2)
+
+xbreaks <- c(0,
+             stepsPerInterval$time[stepsPerInterval$interval == 600],
+             stepsPerInterval$time[stepsPerInterval$interval == 1200],
+             stepsPerInterval$time[stepsPerInterval$interval == 1800],
+             stepsPerInterval$time[stepsPerInterval$interval == 2355])
+
+xlabels <- c("12:00 am", "6:00 am", "12:00 pm", "6:00 pm", "11:55 pm")
+```
+
 Finally, plot the time series.
 
 
 ```r
-with(stepsPerInterval, plot(time, avgSteps, type = "l", 
-                            main = "Time Series of Average Steps per Interval",
-                            ylab = "Average number of steps",
-                            xlab = "Minutes past midnight"))
+timeplot <- ggplot(stepsPerInterval, aes(x=time, y=avgSteps)) + 
+  geom_line() + 
+  scale_x_continuous(name = "Interval", 
+                     breaks = xbreaks, 
+                     labels = xlabels) + 
+  scale_y_continuous(name = "Average number of steps", 
+                     breaks = c(0, 50, 100, 150, 200, 250)) +
+  theme(axis.title.x = element_text(face="bold"), 
+        axis.title.y = element_text(face="bold"), 
+        axis.text.x  = element_text(colour="#000000"), 
+        axis.text.y  = element_text(colour="#000000"))
+timeplot
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
 
 2. **Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
 
@@ -186,7 +209,7 @@ hist(stepsPerDayImpute$numSteps,
      breaks = 8)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
 
 Calculate the mean and median with the imputed data.
 
@@ -243,17 +266,7 @@ Then plot the time series.
 
 
 ```r
-xbreaks <- c(0,
-             stepsPerInterval$time[stepsPerInterval$interval == 600],
-             stepsPerInterval$time[stepsPerInterval$interval == 1200],
-             stepsPerInterval$time[stepsPerInterval$interval == 1800],
-             stepsPerInterval$time[stepsPerInterval$interval == 2355])
-
-xlabels <- c("12:00 am", "6:00 am", "12:00 pm", "6:00 pm", "11:55 pm")
-
-library(ggplot2)
-timeplot <- ggplot(stepsPerIntervalImpute, 
-                   aes(x=time, y=avgSteps)) + 
+dayplot <- ggplot(stepsPerIntervalImpute, aes(x=time, y=avgSteps)) + 
   geom_line() + 
   scale_x_continuous(name = "Interval", 
                      breaks = xbreaks, 
@@ -265,7 +278,7 @@ timeplot <- ggplot(stepsPerIntervalImpute,
         axis.title.y = element_text(face="bold"), 
         axis.text.x  = element_text(colour="#000000"), 
         axis.text.y  = element_text(colour="#000000"))
-timeplot
+dayplot
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-17-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-18-1.png) 
