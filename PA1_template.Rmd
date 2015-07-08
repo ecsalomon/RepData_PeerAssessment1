@@ -213,21 +213,39 @@ activityImpute$weekday <- as.factor(activityImpute$weekday)
 
 2. **Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.**
 
-First, calculate the steps per interval separately for weekdays vs. weekends. Then plot the time series.
+First, calculate the steps per interval separately for weekdays vs. weekends. 
 
 ```{r}
 stepsPerIntervalImpute <- ddply(activityImpute,
                                 .(time, interval, weekday), 
                                 summarize,
                                 avgSteps = mean(steps))
+```
+
+Then plot the time series.
+
+```{r}
+xbreaks <- c(0,
+             stepsPerInterval$time[stepsPerInterval$interval == 600],
+             stepsPerInterval$time[stepsPerInterval$interval == 1200],
+             stepsPerInterval$time[stepsPerInterval$interval == 1800],
+             stepsPerInterval$time[stepsPerInterval$interval == 2355])
+
+xlabels <- c("12:00 am", "6:00 am", "12:00 pm", "6:00 pm", "11:55 pm")
 
 library(ggplot2)
 timeplot <- ggplot(stepsPerIntervalImpute, 
                    aes(x=time, y=avgSteps)) + 
   geom_line() + 
-  facet_grid(weekday ~ ., scales = "free") + 
+  scale_x_continuous(name = "Interval", 
+                     breaks = xbreaks, 
+                     labels = xlabels) + 
+  scale_y_continuous(name = "Average number of steps", 
+                     breaks = c(0, 50, 100, 150, 200, 250)) +
+  facet_grid(weekday ~ .) + 
   theme(axis.title.x = element_text(face="bold"), 
         axis.title.y = element_text(face="bold"), 
         axis.text.x  = element_text(colour="#000000"), 
         axis.text.y  = element_text(colour="#000000"))
+timeplot
 ```

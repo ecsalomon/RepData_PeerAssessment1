@@ -43,7 +43,7 @@ Convert `date` to Date format
 activity$date <- as.Date(activity$date)
 ```
 
-The intervals are stored HHMM format, meaning that they are not evenly spaced when the variable is interpreted as a numeric (i.e., there are gaps between XX55s and YY00s). So convert them to minutes past midnight.
+The intervals are stored HHMM format, meaning that they are not interval scale (evenly spaced) when the variable is interpreted as a numeric. In other words, there is a larger difference between `155` and `200` than between `200` and `205` *despite the fact that both sets of measurements are only five minutes apart*. This will create "jumps" in the line plots between the hours and make an inaccurate visualization. So convert them to minutes past midnight for the purpose of scaling the x-axes.
 
 
 ```r
@@ -196,8 +196,8 @@ meanStepsImpute <- mean(stepsPerDayImpute$numSteps)
 medStepsImpute  <- median(stepsPerDayImpute$numSteps)
 ```
 
-The mean total number of steps taken per day is **10766.189**.  
-The median total number of steps taken per day is **10766.189**.
+The mean total number of steps taken per day is **10766.19**.  
+The median total number of steps taken per day is **10766.19**.
 
 Calculate the differences between these values and those and the values without imputed steps. 
 
@@ -210,12 +210,62 @@ medDiff  <- medStepsImpute - medSteps
 The new mean using the imputed values is **1411.96** steps larger than the mean without imputed values.  
 The new median using the imputed values is **371.19** steps larger than the mean without imputed values.
 
-The previous distribution was right skewed (the median was to the *left* of the mean). Imputing median values for each interval added more values toward the center of the distribution, brought the median and mean closer together and made them larger.
+The previous distribution was right skewed (mostly due to the large number of `0`s). Imputing median values for each interval added more values toward the center of the distribution and reduced the number of days with `0` steps. This brought the median and mean closer together and made them larger.
 
 ### Are there differences in activity patterns between weekdays and weekends?
 
 For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
 
-1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
-2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+1. **Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.**
 
+
+```r
+activityImpute$weekday[weekdays(activityImpute$date) == "Saturday" | 
+                         weekdays(activityImpute$date) == "Sunday"] <- "weekend"
+activityImpute$weekday[!(weekdays(activityImpute$date) == "Saturday" | 
+                         weekdays(activityImpute$date) == "Sunday")] <- "weekday"
+activityImpute$weekday <- as.factor(activityImpute$weekday)
+```
+
+2. **Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.**
+
+First, calculate the steps per interval separately for weekdays vs. weekends. 
+
+
+```r
+stepsPerIntervalImpute <- ddply(activityImpute,
+                                .(time, interval, weekday), 
+                                summarize,
+                                avgSteps = mean(steps))
+```
+
+Then plot the time series.
+
+
+```r
+xbreaks <- c(0,
+             stepsPerInterval$time[stepsPerInterval$interval == 600],
+             stepsPerInterval$time[stepsPerInterval$interval == 1200],
+             stepsPerInterval$time[stepsPerInterval$interval == 1800],
+             stepsPerInterval$time[stepsPerInterval$interval == 2355])
+
+xlabels <- c("12:00 am", "6:00 am", "12:00 pm", "6:00 pm", "11:55 pm")
+
+library(ggplot2)
+timeplot <- ggplot(stepsPerIntervalImpute, 
+                   aes(x=time, y=avgSteps)) + 
+  geom_line() + 
+  scale_x_continuous(name = "Interval", 
+                     breaks = xbreaks, 
+                     labels = xlabels) + 
+  scale_y_continuous(name = "Average number of steps", 
+                     breaks = c(0, 50, 100, 150, 200, 250)) +
+  facet_grid(weekday ~ .) + 
+  theme(axis.title.x = element_text(face="bold"), 
+        axis.title.y = element_text(face="bold"), 
+        axis.text.x  = element_text(colour="#000000"), 
+        axis.text.y  = element_text(colour="#000000"))
+timeplot
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-17-1.png) 
