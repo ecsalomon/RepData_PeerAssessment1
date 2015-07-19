@@ -68,9 +68,19 @@ For this part of the assignment, you can ignore the missing values in the datase
 
 1. **Calculate the total number of steps taken per day**
 
+Let's first take a look at how the missing data correspond to dates. Are there days where we missing all or part of the data?
+
+```{r}
+with(activity, table(date, is.na(steps)))
+```
+
+It looks like for each day, we either have data for every interval or for none. I am going to assume that the missing days are not zero-step days. Instead, they might be days when the device wasn't worn at all, even though the user did move. This might happen if, for example, the user forgot to put on the device after waking up.
+
+Next, I'll use the `ddply()` function for find the sum for each day.
+
 ```{r}
 library(plyr)
-stepsPerDay <- ddply(activity, 
+stepsPerDay <- ddply(activity[complete.cases(activity),], 
                      .(date), 
                      summarize,
                      numSteps = sum(steps, na.rm = TRUE))
@@ -92,7 +102,7 @@ meanSteps <- mean(stepsPerDay$numSteps)
 medSteps  <- median(stepsPerDay$numSteps)
 ```
 
-The mean total number of steps taken per day is **`r round(meanSteps, digits = 2)`**.  
+The mean total number of steps taken per day is **`r format(meanSteps, digits = 7, scientific = FALSE)`**.  
 The median total number of steps taken per day is **`r medSteps`**.
 
 
@@ -100,10 +110,10 @@ The median total number of steps taken per day is **`r medSteps`**.
 
 1. **Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)**
 
-First, create a data set that contains the average steps taken for each interval (as minutes past midnight).
+First, create a data set that contains the average steps taken for each interval (as minutes past midnight). Again, use only days where data were recorded.
 
 ```{r}
-stepsPerInterval <- ddply(activity,
+stepsPerInterval <- ddply(activity[complete.cases(activity),],
                           .(time, interval), 
                           summarize,
                           avgSteps = mean(steps, na.rm = TRUE))
@@ -217,7 +227,7 @@ medDiff  <- medStepsImpute - medSteps
 The new mean using the imputed values is **`r round(meanDiff, digits = 2)`** steps larger than the mean without imputed values.  
 The new median using the imputed values is **`r round(medDiff, digits = 2)`** steps larger than the mean without imputed values.
 
-The previous distribution was right skewed, mostly due to the large number of days with nothing recorded for many intervals, leading to atypically low totals. Imputing median interval values for those days brought their total steps closer to the center of the distribution and reduced the number of days with nearly `0` steps. This brought the median and mean closer together and made them larger.
+Imputing median interval values for the days with no data recorded made the new median equal to the mean but did not change the mean.
 
 ### Are there differences in activity patterns between weekdays and weekends?
 

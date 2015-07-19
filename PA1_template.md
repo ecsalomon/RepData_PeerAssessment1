@@ -66,10 +66,87 @@ For this part of the assignment, you can ignore the missing values in the datase
 
 1. **Calculate the total number of steps taken per day**
 
+Let's first take a look at how the missing data correspond to dates. Are there days where we missing all or part of the data?
+
+
+```r
+with(activity, table(date, is.na(steps)))
+```
+
+```
+##             
+## date         FALSE TRUE
+##   2012-10-01     0  288
+##   2012-10-02   288    0
+##   2012-10-03   288    0
+##   2012-10-04   288    0
+##   2012-10-05   288    0
+##   2012-10-06   288    0
+##   2012-10-07   288    0
+##   2012-10-08     0  288
+##   2012-10-09   288    0
+##   2012-10-10   288    0
+##   2012-10-11   288    0
+##   2012-10-12   288    0
+##   2012-10-13   288    0
+##   2012-10-14   288    0
+##   2012-10-15   288    0
+##   2012-10-16   288    0
+##   2012-10-17   288    0
+##   2012-10-18   288    0
+##   2012-10-19   288    0
+##   2012-10-20   288    0
+##   2012-10-21   288    0
+##   2012-10-22   288    0
+##   2012-10-23   288    0
+##   2012-10-24   288    0
+##   2012-10-25   288    0
+##   2012-10-26   288    0
+##   2012-10-27   288    0
+##   2012-10-28   288    0
+##   2012-10-29   288    0
+##   2012-10-30   288    0
+##   2012-10-31   288    0
+##   2012-11-01     0  288
+##   2012-11-02   288    0
+##   2012-11-03   288    0
+##   2012-11-04     0  288
+##   2012-11-05   288    0
+##   2012-11-06   288    0
+##   2012-11-07   288    0
+##   2012-11-08   288    0
+##   2012-11-09     0  288
+##   2012-11-10     0  288
+##   2012-11-11   288    0
+##   2012-11-12   288    0
+##   2012-11-13   288    0
+##   2012-11-14     0  288
+##   2012-11-15   288    0
+##   2012-11-16   288    0
+##   2012-11-17   288    0
+##   2012-11-18   288    0
+##   2012-11-19   288    0
+##   2012-11-20   288    0
+##   2012-11-21   288    0
+##   2012-11-22   288    0
+##   2012-11-23   288    0
+##   2012-11-24   288    0
+##   2012-11-25   288    0
+##   2012-11-26   288    0
+##   2012-11-27   288    0
+##   2012-11-28   288    0
+##   2012-11-29   288    0
+##   2012-11-30     0  288
+```
+
+It looks like for each day, we either have data for every interval or for none. I am going to assume that the missing days are not zero-step days. Instead, they might be days when the device wasn't worn at all, even though the user did move. This might happen if, for example, the user forgot to put on the device after waking up.
+
+Next, I'll use the `ddply()` function for find the sum for each day.
+
 
 ```r
 library(plyr)
-stepsPerDay <- ddply(activity, 
+stepsPerDay <- ddply(activity[complete.cases(activity),], 
                      .(date), 
                      summarize,
                      numSteps = sum(steps, na.rm = TRUE))
@@ -85,7 +162,7 @@ hist(stepsPerDay$numSteps,
      breaks = 8)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
 
 3. **Calculate and report the mean and median of the total number of steps taken per day**
 
@@ -95,19 +172,19 @@ meanSteps <- mean(stepsPerDay$numSteps)
 medSteps  <- median(stepsPerDay$numSteps)
 ```
 
-The mean total number of steps taken per day is **9354.23**.  
-The median total number of steps taken per day is **10395**.
+The mean total number of steps taken per day is **10766.19**.  
+The median total number of steps taken per day is **10765**.
 
 
 ### What is the average daily activity pattern?
 
 1. **Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)**
 
-First, create a data set that contains the average steps taken for each interval (as minutes past midnight).
+First, create a data set that contains the average steps taken for each interval (as minutes past midnight). Again, use only days where data were recorded.
 
 
 ```r
-stepsPerInterval <- ddply(activity,
+stepsPerInterval <- ddply(activity[complete.cases(activity),],
                           .(time, interval), 
                           summarize,
                           avgSteps = mean(steps, na.rm = TRUE))
@@ -146,7 +223,7 @@ timeplot <- ggplot(stepsPerInterval, aes(x=time, y=avgSteps)) +
 timeplot
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
 
 2. **Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
 
@@ -209,7 +286,7 @@ hist(stepsPerDayImpute$numSteps,
      breaks = 8)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
 
 Calculate the mean and median with the imputed data.
 
@@ -230,10 +307,10 @@ meanDiff <- meanStepsImpute - meanSteps
 medDiff  <- medStepsImpute - medSteps
 ```
 
-The new mean using the imputed values is **1411.96** steps larger than the mean without imputed values.  
-The new median using the imputed values is **371.19** steps larger than the mean without imputed values.
+The new mean using the imputed values is **0** steps larger than the mean without imputed values.  
+The new median using the imputed values is **1.19** steps larger than the mean without imputed values.
 
-The previous distribution was right skewed, mostly due to the large number of days with nothing recorded for many intervals, leading to atypically low totals. Imputing median interval values for those days brought their total steps closer to the center of the distribution and reduced the number of days with nearly `0` steps. This brought the median and mean closer together and made them larger.
+Imputing median interval values for the days with no data recorded made the new median equal to the mean but did not change the mean.
 
 ### Are there differences in activity patterns between weekdays and weekends?
 
@@ -281,4 +358,4 @@ dayplot <- ggplot(stepsPerIntervalImpute, aes(x=time, y=avgSteps)) +
 dayplot
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-18-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-19-1.png) 
