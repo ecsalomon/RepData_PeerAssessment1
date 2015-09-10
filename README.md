@@ -1,6 +1,6 @@
 # Reproducible Research: Peer Assessment 1
 
-This is my response to the first peer assessment assignment for the Coursera Reproducible Research course (part of the Data Science specialization).
+This is my response to the first peer assessment assignment for the Coursera Reproducible Research course (part of the [Data Science specialization](https://www.coursera.org/specializations/jhudatascience)).
 
 The assignment asks for exploratory analysis and data imputation for step data from someone's personal activity monitory. The full assignment instructions are available [here](https://github.com/ecsalomon/RepData_PeerAssessment1/blob/master/assignment.md)
 
